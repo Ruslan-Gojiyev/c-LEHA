@@ -1,0 +1,61 @@
+#include <iostream>
+#include <random>
+#include <limits>
+
+using namespace std;
+
+void playGame() {
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<> distrib(1, 100);
+    int secretNumber = distrib(gen);
+    int guess;
+    int attempts = 7;
+
+    cout << "Я загадал число от 1 до 100. У вас " << attempts << " попыток, чтобы угадать!\n";
+    cout << "Введите число (или 'q' для выхода):\n";
+
+    while (attempts > 0) {
+        cout << "Осталось попыток: " << attempts << ". Введите число: ";
+
+        if (!(cin >> guess)) {
+            cin.clear();
+            string input;
+            cin >> input;
+            if (input == "q") {
+                cout << "Выход из игры.\n";
+                return;
+            }
+            cout << "Ошибка! Введите корректное число.\n";
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            continue;
+        }
+
+        if (guess == secretNumber) {
+            cout << "Поздравляю! Вы угадали число " << secretNumber << "!\n";
+            return;
+        } else if (guess < secretNumber) {
+            cout << "Загаданное число больше.\n";
+        } else {
+            cout << "Загаданное число меньше.\n";
+        }
+
+        attempts--;
+    }
+
+    cout << "Вы проиграли! Загаданное число было: " << secretNumber << ".\n";
+}
+
+int main() {
+    setlocale(LC_ALL, "Russian");
+    char choice;
+    
+    do {
+        playGame();
+        cout << "Хотите сыграть ещё раз? (y/n): ";
+        cin >> choice;
+    } while (choice == 'y' || choice == 'Y');
+
+    cout << "Спасибо за игру!\n";
+    return 0;
+}

@@ -1,0 +1,111 @@
+#include <iostream>
+#include <vector>
+#include <limits>
+#include <random>
+
+using namespace std;
+
+class TicTacToe {
+private:
+    vector<char> field{' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '};
+    char player = 'X';
+    int moveCount = 0;
+    bool againstAI = false;
+
+    void printField() {
+        cout << "\n " << field[0] << " | " << field[1] << " | " << field[2] << "\n";
+        cout << "---+---+---\n";
+        cout << " " << field[3] << " | " << field[4] << " | " << field[5] << "\n";
+        cout << "---+---+---\n";
+        cout << " " << field[6] << " | " << field[7] << " | " << field[8] << "\n\n";
+    }
+
+    bool checkWin() {
+        const int winCombos[8][3] = {
+            {0, 1, 2}, {3, 4, 5}, {6, 7, 8},
+            {0, 3, 6}, {1, 4, 7}, {2, 5, 8},
+            {0, 4, 8}, {2, 4, 6}
+        };
+        for (auto &combo : winCombos) {
+            if (field[combo[0]] == player && field[combo[1]] == player && field[combo[2]] == player) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void playerMove() {
+        int cell;
+        while (true) {
+            cout << "Игрок " << player << ", выберите клетку (1-9): ";
+            if (!(cin >> cell)  cell < 1  cell > 9 || field[cell - 1] != ' ') {
+                cout << "Ошибка! Попробуйте ещё раз.\n";
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            } else {
+                break;
+            }
+        }
+        field[cell - 1] = player;
+    }
+
+    void aiMove() {
+        cout << "Ход компьютера (O)...\n";
+        random_device rd;
+        mt19937 gen(rd());
+        vector<int> availableMoves;
+        
+        for (int i = 0; i < 9; i++) {
+            if (field[i] == ' ') availableMoves.push_back(i);
+        }
+
+        uniform_int_distribution<> distrib(0, availableMoves.size() - 1);
+        field[availableMoves[distrib(gen)]] = 'O';
+    }
+
+public:
+    void play() {
+        cout << "Выберите режим игры:\n1 - Человек против человека\n2 - Человек против компьютера\n";
+        int choice;
+        while (!(cin >> choice) || (choice != 1 && choice != 2)) {
+            cout << "Ошибка! Введите 1 или 2: ";
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        }
+        againstAI = (choice == 2);
+
+        while (moveCount < 9) {
+            printField();
+            if (player == 'X' || !againstAI) {
+                playerMove();
+            } else {
+                aiMove();
+            }
+
+            if (checkWin()) {
+                printField();
+                cout << "Поздравляем, игрок " << player << " выиграл!\n";
+                return;
+            }
+
+            moveCount++;
+            player = (player == 'X') ? 'O' : 'X';
+        }
+        printField();
+        cout << "Ничья!\n";
+    }
+};
+
+int main() {
+    setlocale(LC_ALL, "Russian");
+    char playAgain;
+    do {
+        TicTacToe game;
+        game.play();
+        cout << "\nХотите сыграть ещё раз? (Y/N): ";
+        cin >> playAgain;
+    } while (playAgain == 'Y' || playAgain == 'y');
+
+    cout << "Спасибо за игру!\n";
+    return 0;
+}

@@ -1,0 +1,108 @@
+#include <iostream>
+#include <string>
+#include <random>
+
+using namespace std;
+
+struct Character {
+    string name;
+    int health;
+    int attack;
+    int defense;
+
+    void attackTarget(Character& target, mt19937& gen) {
+        uniform_int_distribution<> critChance(1, 10);
+        int damage = attack - target.defense;
+
+      
+        if (critChance(gen) == 1) {
+            damage *= 2;
+            cout << name << " наносит КРИТИЧЕСКИЙ удар по " << target.name << " на " << damage << " урона!\n";
+        }
+        // Возможность промаха
+        else if (critChance(gen) == 10) {
+            cout << name << " промахивается по " << target.name << "!\n";
+            return;
+        }
+        else {
+            if (damage < 0) damage = 0;
+            cout << name << " атакует " << target.name << " и наносит " << damage << " урона.\n";
+        }
+
+        target.health -= damage;
+    }
+};
+
+void printStatus(const Character& hero, const Character& monster) {
+    cout << "\n--- Статус сражения ---\n";
+    cout << hero.name << " (Здоровье: " << hero.health << " | Защита: " << hero.defense << ")\n";
+    cout << monster.name << " (Здоровье: " << monster.health << " | Защита: " << monster.defense << ")\n";
+    cout << "-------------------------\n\n";
+}
+
+
+Character generateMonster(mt19937& gen) {
+    vector<Character> monsters = {
+        {"Бандит", 50, 10, 2},
+        {"Орк", 80, 15, 5},
+        {"Дракон", 150, 20, 8},
+        {"Великан", 100, 12, 6}
+    };
+    uniform_int_distribution<> distrib(0, monsters.size() - 1);
+    return monsters[distrib(gen)];
+}
+
+int main() {
+    setlocale(LC_ALL, "Russian");
+    random_device rd;
+    mt19937 gen(rd());
+
+    cout << "Введите имя героя: ";
+    string heroName;
+    cin >> heroName;
+
+    Character hero = { heroName, 100, 15, 5 };
+    Character monster = generateMonster(gen);
+
+    int potions = 3;  // Количество зелий лечения
+
+    cout << "На пути " << hero.name << " появился " << monster.name << "!\n";
+
+    while (hero.health > 0 && monster.health > 0) {
+        int choice;
+        cout << "Выберите действие:\n1. Атаковать\n2. Использовать зелье (" << potions << " осталось)\n3. Пропустить ход\nВаш выбор: ";
+        cin >> choice;
+
+        if (choice == 1) {
+            hero.attackTarget(monster, gen);
+        }
+        else if (choice == 2 && potions > 0) {
+            hero.health += 20;
+            potions--;
+            cout << hero.name << " выпил зелье и восстановил 20 здоровья!\n";
+        }
+        else if (choice == 3) {
+            cout << hero.name << " пропускает ход.\n";
+        }
+        else {
+            cout << "Некорректный ввод! Попробуйте снова.\n";
+            continue;
+        }
+
+        if (monster.health > 0) {
+            cout << monster.name << " атакует!\n";
+            monster.attackTarget(hero, gen);
+        }
+
+        printStatus(hero, monster);
+    }
+
+    if (hero.health > 0) {
+        cout << hero.name << " победил!\n";
+    }
+    else {
+        cout << "Монстр " << monster.name << " одержал победу...\n";
+    }
+
+    return 0;
+}
